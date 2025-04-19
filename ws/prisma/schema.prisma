@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String?
+  password     String?
+  provider     Provider
+  
+  streams      Stream[] @relation("user")
+  upvotes      Upvote[]
+  addedStreams Stream[] @relation("addedBy")
+  hostedSpaces Space[]  @relation("hostedBy")
+}
+model Stream {
+  id            String         @id @default(uuid())
+  platform      Platform       // Enum to differentiate between platforms (YouTube, Spotify)
+  type          StreamType     // Enum to differentiate between stream types (Video, Audio, etc.)
+  url           String
+  extractedId   String         // ID extracted from platform (like videoId for YouTube, trackId for Spotify)
+  title         String         @default("")
+  smallImg      String?        // Optional image for platforms like YouTube
+  bigImg        String?        // Optional image for platforms like YouTube
+  albumCover    String?        // For Spotify streams that might have an album cover image
+  artist        String?        // For Spotify streams, optional
+  active        Boolean        @default(true)
+  played        Boolean        @default(false)
+  playedTs      DateTime?
+  createAt      DateTime       @default(now())
+  userId        String
+  addedBy       String
+  spaceId       String?
+
+  currentStream CurrentStream?
+  space         Space?         @relation("spaceStreams", fields: [spaceId], references: [id], onDelete: Cascade)
+  addedByUser   User           @relation("addedBy", fields: [addedBy], references: [id])
+  user          User           @relation("user", fields: [userId], references: [id])
+  upvotes       Upvote[]
+}
+
+enum Platform {
+  YOUTUBE
+  SPOTIFY
+}
+
+enum StreamType {
+  VIDEO
+  AUDIO
+}
+
+model CurrentStream {
+  id       String  @id @default(uuid())
+  userId   String
+  streamId String? @unique
+  stream   Stream? @relation(fields: [streamId], references: [id])
+  spaceId  String? @unique
+  space    Space?  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}
+
+model Upvote {
+  id       String @id @default(uuid())
+  userId   String
+  streamId String
+  user     User   @relation(fields: [userId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, streamId])
+}
+
+model Space { //Room
+  id            String         @id @default(uuid())
+  name          String
+  streams       Stream[]       @relation("spaceStreams") //the list of music belonging to this space
+  hostId        String
+  host          User           @relation("hostedBy", fields: [hostId], references: [id])
+  isActive      Boolean        @default(true)
+  currentStream CurrentStream?
+}
+
+
+
+enum Provider {
+  Google
+  Credentials
+  Spotify
+}
