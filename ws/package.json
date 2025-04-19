@@ -4,11 +4,12 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "dev": "nodemon src/app.ts",
+    "dev": "nodemon --watch src --ext ts,js src/app.ts",
     "start": "node dist/app.js",
-    "build": "npx prisma generate && npx tsc -b",
+    "build": "pnpm prisma:generate && tsc -b",
     "preinstall": "npx only-allow pnpm",
-    "postinstall": "npx prisma generate"
+    "postinstall": "pnpm prisma:generate",
+    "prisma:generate": "prisma generate"
   },
   "keywords": [],
   "author": "",
