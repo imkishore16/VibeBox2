@@ -1,3 +1,4 @@
+"use server"
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
       platform = "YOUTUBE";
     } else if (spotifyMatch) {
       videoId = spotifyMatch[1];
-      const res = await getSpotifyTrackDetails(videoId); // You’ll implement this
+      const res = await getSpotifyTrackDetails(videoId); 
       title = res.title;
       thumbnail = res.thumbnail;
       platform = "SPOTIFY";
@@ -205,7 +206,7 @@ export async function POST(req: NextRequest) {
 }
 
 
-export async function getSpotifyTrackDetails(trackId: string): Promise<{
+async function getSpotifyTrackDetails(trackId: string): Promise<{
   title: string;
   thumbnail: string;
 }> {

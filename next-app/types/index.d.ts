@@ -11,6 +11,6 @@ interface Video {
   upvotes: number;
   haveUpvoted: boolean;
   spaceId:string
-  platform:string
+  platform:"YOUTUBE"|"SPOTIFY",
   thumbnail? : string
 }
