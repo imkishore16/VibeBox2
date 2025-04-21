@@ -735,7 +735,7 @@ export class RoomManager {
     
     // handle yt url
     // if (res.thumbnail) {
-    else{
+    else if (platform=="youtube"){
       console.log("handling yt")
       const thumbnails = res.thumbnail.thumbnails;
       thumbnails.sort((a: { width: number }, b: { width: number }) =>

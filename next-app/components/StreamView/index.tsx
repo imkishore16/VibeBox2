@@ -91,7 +91,7 @@ export default function StreamView({
       setQueue(
         json.streams.sort((a: any, b: any) => (a.upvotes < b.upvotes ? 1 : -1)),
       );
-
+      if (json.activeStream?.stream) {
       setCurrentVideo((video) => {
         console.log(video)
         if (video?.id === json.activeStream?.stream?.id) {
@@ -100,6 +100,10 @@ export default function StreamView({
         }
         return json.activeStream.stream;
       });
+    }
+      else {
+        setCurrentVideo(null); // maybe nothing is playing
+      }
       setSpaceName(json.spaceName);
     } catch (error) {
       enqueueToast("error", "Something went wrong");
