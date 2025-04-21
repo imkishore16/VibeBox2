@@ -40,6 +40,7 @@ export default function AddSongForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(inputLink.match(YT_REGEX), inputLink.match(SPOTIFY_REGEX))
     if (inputLink.match(YT_REGEX) || inputLink.match(SPOTIFY_REGEX)) {
       setLoading(true);
       const token = await getSpotifyAccessToken();

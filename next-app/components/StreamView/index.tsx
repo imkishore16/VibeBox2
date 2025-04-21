@@ -72,6 +72,7 @@ export default function StreamView({
   }, [socket]);
 
   useEffect(() => {
+    console.log("refreshing")
     refreshStreams();
   }, []);
 
@@ -92,6 +93,7 @@ export default function StreamView({
       );
 
       setCurrentVideo((video) => {
+        console.log(video)
         if (video?.id === json.activeStream?.stream?.id) {
           console.log("video : " , video)
           return video;

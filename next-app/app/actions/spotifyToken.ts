@@ -1,7 +1,6 @@
 "use server";
 
 export async function getSpotifyAccessToken(): Promise<string | null> {
-  console.log("ehre")
   const res = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {

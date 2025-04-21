@@ -144,6 +144,7 @@ export default function NowPlaying({
           {playNextLoader ? "Loading..." : "Play next"}
         </Button>
       )}
+      
     </div>
   );
 }

@@ -658,6 +658,8 @@ export class RoomManager {
     let res;
     try{
       res = platform==="youtube"?await youtubesearchapi.GetVideoDetails(extractedId):await spotifyApi.getTrack(extractedId);
+      console.log(platform)
+      console.log(res)
     }
     catch(e)
     {
@@ -733,7 +735,8 @@ export class RoomManager {
     
     // handle yt url
     // if (res.thumbnail) {
-    else if(platform==="youtube"){
+    else{
+      console.log("handling yt")
       const thumbnails = res.thumbnail.thumbnails;
       thumbnails.sort((a: { width: number }, b: { width: number }) =>
         a.width < b.width ? -1 : 1

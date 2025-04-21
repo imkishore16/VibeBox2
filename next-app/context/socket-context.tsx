@@ -32,10 +32,14 @@ export const SocketContextProvider = ({ children }: PropsWithChildren) => {
   const [loading, setLoading] = useState(true);
   const session = useSession();
 
+  // const wsUrl ="wss://vibebox2.onrender.com";
 
   useEffect(() => {
     if (!socket && session.data?.user.id) {
-      const ws = new WebSocket(process.env.NEXT_PUBLIC_WSS_URL as string);
+      const socketUrl = process.env.NEXT_PUBLIC_WSS_URL;
+
+      console.log("process.env.NEXT_PUBLIC_WSS_URL" , socketUrl )
+      const ws = new WebSocket(socketUrl as string);
       ws.onopen = () => {
         setSocket(ws);
         setUser(session.data?.user || null);
