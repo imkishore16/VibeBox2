@@ -88,21 +88,22 @@ export default function StreamView({
         credentials: "include",
       });
       const json = await res.json();
+      console.log("json" , json)
       setQueue(
         json.streams.sort((a: any, b: any) => (a.upvotes < b.upvotes ? 1 : -1)),
       );
       if (json.activeStream?.stream) {
-      setCurrentVideo((video) => {
-        console.log(video)
-        if (video?.id === json.activeStream?.stream?.id) {
-          console.log("video : " , video)
-          return video;
-        }
-        return json.activeStream.stream;
-      });
-    }
+        setCurrentVideo((video) => {
+          console.log(video)
+          if (video?.id === json.activeStream?.stream?.id) {
+            console.log("video : " , video)
+            return video;
+          }
+          return json.activeStream.stream;
+        });
+      }
       else {
-        setCurrentVideo(null); // maybe nothing is playing
+        setCurrentVideo(null); 
       }
       setSpaceName(json.spaceName);
     } catch (error) {

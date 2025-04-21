@@ -9,6 +9,7 @@ export type Video = {
   extractedId: string;
   title: string;
   bigImg: string;
+  url:string
 };
 
 type Props = {
@@ -59,31 +60,30 @@ export default function NowPlaying({
     } else if (currentVideo.platform === "SPOTIFY") {
       return (
         <iframe
-          src={`https://open.spotify.com/embed/track/${currentVideo.extractedId}?autoplay=1`}
-          width="100%"
-          height="352"
-          frameBorder="0"
-          allowTransparency={true}
-          allow="encrypted-media; autoplay; clipboard-write"
-          className="rounded"
-          onLoad={(e) => {
-            // Add event listener for Spotify track end
-            window.addEventListener('message', (event) => {
-              try {
-                const data = JSON.parse(event.data);
-                // Check if the track ended (Spotify-specific event)
-                if (data.type === "player_state_changed" && 
-                    data.payload && 
-                    data.payload.progress === 0 &&
-                    data.payload.paused === true) {
-                  playNext();
+            src={`https://open.spotify.com/embed/track/${currentVideo.extractedId}?utm_source=generator&theme=0&autoplay=1`}
+            width="100%"
+            height="352"
+            frameBorder="0"
+            allowTransparency={true}
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            className="rounded"
+            onLoad={(e) => {
+              window.addEventListener('message', (event) => {
+                try {
+                  const data = JSON.parse(event.data);
+                  if (data.type === "player_state_changed" && 
+                      data.payload && 
+                      data.payload.progress === 0 &&
+                      data.payload.paused === true) {
+                    playNext();
+                  }
+                } catch (error) {
                 }
-              } catch (error) {
-                // Ignore parsing errors
-              }
-            });
-          }}
-        />
+              });
+          }}  
+          />
+
       );
     }
     
@@ -134,7 +134,7 @@ export default function NowPlaying({
         </CardContent>
       </Card>
       
-      {currentVideo && (
+      {/* {currentVideo && (
         <Button 
           disabled={playNextLoader} 
           onClick={playNext} 
@@ -143,7 +143,15 @@ export default function NowPlaying({
           <Play className="mr-2 h-4 w-4" />
           {playNextLoader ? "Loading..." : "Play next"}
         </Button>
-      )}
+      )} */}
+      <Button 
+          disabled={playNextLoader} 
+          onClick={playNext} 
+          className="w-full"
+        >
+          <Play className="mr-2 h-4 w-4" />
+          {playNextLoader ? "Loading..." : "Play next"}
+        </Button>
       
     </div>
   );

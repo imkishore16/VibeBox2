@@ -1,13 +1,10 @@
 import WebSocket from "ws";
 import { createClient, RedisClientType } from "redis";
 //@ts-ignore
-import youtubesearchapi from "youtube-search-api";
 import { Job, Queue, Worker } from "bullmq";
 import { PrismaClient } from "@prisma/client";
 
-import { getSpotifyId, getVideoId, isValidSpotifyURL, isValidYoutubeURL ,checkUrlPlatform} from "./utils";
-import SpotifyWebApi from "spotify-web-api-node"
-const spotifyApi = new SpotifyWebApi();
+import { getSpotifyId, getVideoId, isValidSpotifyURL, isValidYoutubeURL ,checkUrlPlatform, getYouTubeVideoDetails, getSpotifyTrack} from "./utils";
 
 const TIME_SPAN_FOR_VOTE = 1200000; // 20min
 const TIME_SPAN_FOR_QUEUE = 1200000; // 20min
@@ -326,7 +323,7 @@ export class RoomManager {
       return;
     }
 
-    const res = await youtubesearchapi.GetVideoDetails(extractedId);
+    const res = await getYouTubeVideoDetails(extractedId);
 
     if (res.thumbnail) {
       const thumbnails = res.thumbnail.thumbnails;
@@ -654,10 +651,9 @@ export class RoomManager {
       existingActiveStream + 1
     );
 
-    spotifyApi.setAccessToken(accessToken);
     let res;
     try{
-      res = platform==="youtube"?await youtubesearchapi.GetVideoDetails(extractedId):await spotifyApi.getTrack(extractedId);
+      res = platform==="youtube"?await getYouTubeVideoDetails(extractedId):await getSpotifyTrack(extractedId,accessToken);
       console.log(platform)
       console.log(res)
     }
@@ -670,7 +666,6 @@ export class RoomManager {
     //handle spotify
     if(platform==="spotify")
       {
-        
         console.log("user" , userId)
         console.log("handling spotify url")
         const thumbnails = res.body.album.images;
@@ -737,6 +732,8 @@ export class RoomManager {
     // if (res.thumbnail) {
     else if (platform=="youtube"){
       console.log("handling yt")
+      console.log(res)
+      
       const thumbnails = res.thumbnail.thumbnails;
       thumbnails.sort((a: { width: number }, b: { width: number }) =>
         a.width < b.width ? -1 : 1

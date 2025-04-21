@@ -4,11 +4,10 @@ import http from "http";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import { sendError } from "./utils";
-// import os from "os";
 import { RoomManager } from "./StreamManager";
 
 dotenv.config();
-const cors = 1; // os.cpus().length  // for vertical scaling
+const cors = 1;
 
 if (cluster.isPrimary) {
   for (let i = 0; i < cors; i++) {
