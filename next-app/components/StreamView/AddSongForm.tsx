@@ -114,7 +114,7 @@ export default function AddSongForm({
   return (
     <>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Add a song</h1>
+        <h1 className="text-xl font-bold text-white">Add a song</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-2">

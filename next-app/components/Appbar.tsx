@@ -25,7 +25,7 @@ export function Appbar({ showThemeSwitch = true , isSpectator=false }) {
         {isSpectator && <WalletMultiButton/>}
         {session.data?.user && (
           <Button
-            className="bg-purple-600 text-white hover:bg-purple-700"
+            className="bg-black text-white hover:bg-gray-800"
             onClick={() =>
               signOut({
                 callbackUrl: "/",
@@ -38,7 +38,7 @@ export function Appbar({ showThemeSwitch = true , isSpectator=false }) {
         {!session.data?.user && (
           <div className="space-x-3">
             <Button
-              className="bg-purple-600 text-white hover:bg-purple-700"
+              className="bg-black text-white hover:bg-gray-800"
               onClick={() => router.push("/auth")}
             >
               Signin

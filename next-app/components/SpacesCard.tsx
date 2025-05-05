@@ -53,7 +53,7 @@ export default function SpacesCard({
       transition={{ duration: 0.5 }}
       className="p-4 md:p-6"
     >
-      <Card className="w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 transition-all duration-300 ease-in-out hover:shadow-[0_10px_20px_rgba(128,90,213,0.5)]">
+      <Card className="w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 transition-all duration-300 ease-in-out hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
         <CardContent className="p-0">
           <motion.div
             className="relative h-48 w-full sm:h-64 md:h-72 lg:h-80 xl:h-96"
@@ -93,7 +93,7 @@ export default function SpacesCard({
           <Button
             variant="outline"
             size="lg"
-            className="w-full rounded-lg border-purple-600 bg-purple-700 text-white shadow-md transition-colors duration-300 hover:bg-purple-600 hover:shadow-purple-600/50 md:w-auto"
+            className="w-full rounded-lg border-gray-500 bg-black text-white shadow-md transition-colors duration-300 hover:bg-gray-800 hover:shadow-gray-800/50 md:w-auto"
             onClick={() => router.push(`/dashboard/${space.id}`)}
           >
             <ArrowRight className="mr-2 h-5 w-5" />
@@ -129,7 +129,7 @@ export default function SpacesCard({
                 </Button>
                 <Button
                   type="submit"
-                  className="w-full rounded-lg bg-red-600 text-white shadow-md transition-colors duration-300 hover:bg-red-700 hover:shadow-red-500/50 sm:w-auto"
+                  className="w-full rounded-lg bg-black text-white shadow-md transition-colors duration-300 hover:bg-gray-800 hover:shadow-gray-800/50 sm:w-auto"
                   onClick={confirmDelete}
                 >
                   Confirm

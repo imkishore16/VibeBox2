@@ -1,17 +1,13 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { SignInFlow } from "@/types/auth-types";
 import AuthScreen from "@/components/auth/auth-screen";
 
-export default function AuthPage({
-  searchParams,
-}: {
-  searchParams: { authType: SignInFlow; mailId?: string };
-}) {
-  const formType = searchParams.authType;
+export default function AuthPage() {
+  const searchParams = useSearchParams();
+  const formType = searchParams.get("authType") as SignInFlow || "signIn";
   const session = useSession();
   const router = useRouter();
 

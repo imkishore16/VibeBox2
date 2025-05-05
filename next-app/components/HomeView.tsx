@@ -133,14 +133,14 @@ export default function HomeView() {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-900 to-black text-gray-200">
       <Appbar />
       <div className="flex flex-grow flex-col items-center px-4 py-8">
-        <div className="h-36 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-900 bg-clip-text text-9xl font-bold text-transparent">
+        <div className="h-36 rounded-xl bg-gradient-to-r from-gray-800 to-black bg-clip-text text-9xl font-bold text-transparent">
           Spaces
         </div>
         <Button
           onClick={() => {
             setIsCreateSpaceOpen(true);
           }}
-          className="mt-10 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+          className="mt-10 rounded-lg bg-black px-4 py-2 text-white hover:bg-gray-800"
         >
           Create a new Space
         </Button>
@@ -157,13 +157,13 @@ export default function HomeView() {
             </DialogTitle>
             <fieldset className="Fieldset">
               <label
-                className="text-violet11 w-[90px] text-right text-xl font-bold"
+                className="text-gray-800 w-[90px] text-right text-xl font-bold"
                 htmlFor="name"
               >
                 Name of the Space
               </label>
               <input
-                className="text-violet11 shadow-violet7 focus:shadow-violet8 mt-5 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
+                className="text-gray-800 shadow-gray-500 focus:shadow-gray-700 mt-5 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="name"
                 defaultValue="Pedro Duarte"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,7 +181,7 @@ export default function HomeView() {
             </Button>
             <Button
               onClick={handleCreateSpace}
-              className="bg-purple-600 text-white hover:bg-purple-700"
+              className="bg-black text-white hover:bg-gray-800"
             >
               Create Space
             </Button>

@@ -4,6 +4,8 @@ import { TriangleAlert } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -16,65 +18,80 @@ interface SigninCardProps {
 }
 
 export default function SigninCard({ setFormType: setState }: SigninCardProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
+  const [credentials, setCredentials] = useState<{
+    email: string;
+    password: string;
+  }>({
+    email: "",
+    password: "",
+  });
 
-  const signInWithProvider = async (provider: "google" | "credentials") => {
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async () => {
+    if (!credentials.email || !credentials.password) {
+      toast.error("Please fill all the fields");
+      return;
+    }
+
     try {
-      if (provider === "credentials") {
-        const res = signIn(provider, {
-          email,
-          password,
-          redirect: false,
-          callbackUrl: "/home",
-        });
-        res.then((res) => {
-          if (res?.error) {
-            setError(res.error);
-          }
-          if (!res?.error) {
-            router.push("/");
-          }
-          setPending(false);
-        });
+      setLoading(true);
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: credentials.email,
+        password: credentials.password,
+        callbackUrl: "/home",
+      });
+      if (res?.error) {
+        setError(res.error);
       }
-      if (provider === "google") {
-        const res = signIn(provider, {
-          redirect: false,
-          callbackUrl: "/home",
-        });
-        res.then((res) => {
-          if (res?.error) {
-            setError(res.error);
-          }
-
-          if (!res?.error) {
-            router.push("/");
-          }
-          console.log(res);
-          setPending(false);
-        });
+      if (res?.url) {
+        router.push(res.url);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      toast.error(
+        (err as Error).message || "Something went wrong, please try again"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlerCredentialSignin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setError("");
-    setPending(true);
-    signInWithProvider("credentials");
+  const handleGoogleSignin = async () => {
+    try {
+      setLoading(true);
+      const res = await signIn("google", {
+        redirect: false,
+        callbackUrl: "/home",
+      });
+      if (res?.error) {
+        setError(res.error);
+      }
+      if (res?.url) {
+        router.push(res.url);
+      }
+    } catch (err) {
+      toast.error(
+        (err as Error).message || "Something went wrong, please try again"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleSignin = (provider: "google") => {
-    setError("");
-    setPending(true);
-    signInWithProvider(provider);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials({
+      ...credentials,
+      [name]: value,
+    });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -91,46 +108,71 @@ export default function SigninCard({ setFormType: setState }: SigninCardProps) {
         </div>
       )}
       <CardContent className="space-y-6 px-0 pb-0">
-        <form onSubmit={handlerCredentialSignin} className="space-y-4">
-          <Input
-            disabled={pending}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className="border-gray-400 bg-transparent text-white placeholder:text-gray-400 focus-visible:ring-purple-600 focus-visible:ring-offset-0"
-            type="email"
-            required
-          />
-          <Input
-            disabled={pending}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="border-gray-400 bg-transparent text-white placeholder:text-gray-400 focus-visible:ring-purple-600 focus-visible:ring-offset-0"
-            type="password"
-            required
-          />
+        <form 
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+        >
+          <div>
+            <label className="mb-2 block text-sm font-bold text-white">
+              Email
+            </label>
+            <Input
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={credentials.email}
+              onChange={handleInputChange}
+              className="border-gray-400 bg-transparent text-white placeholder:text-gray-400 focus-visible:ring-purple-600 focus-visible:ring-offset-0"
+              required
+            />
+          </div>
+          <div className="relative">
+            <label className="mb-2 block text-sm font-bold text-white">
+              Password
+            </label>
+            <Input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={credentials.password}
+              onChange={handleInputChange}
+              className="border-gray-400 bg-transparent text-white placeholder:text-gray-400 focus-visible:ring-purple-600 focus-visible:ring-offset-0"
+              required
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-2 top-9 text-gray-400"
+            >
+              {showPassword ? (
+                <EyeOffIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           <Button
-            disabled={pending}
             type="submit"
+            disabled={loading}
             className="w-full bg-purple-600 hover:bg-purple-700"
-            size={"lg"}
+            size="lg"
           >
-            Continue
+            {loading ? "Signing In..." : "Continue"}
           </Button>
         </form>
         <Separator className="bg-gradient-to-r from-gray-800 via-neutral-500 to-gray-800" />
         <div className="flex flex-col items-center gap-y-2.5">
           <Button
-            disabled={pending}
-            onClick={() => {
-              handleGoogleSignin("google");
-            }}
-            size={"lg"}
+            disabled={loading}
+            onClick={handleGoogleSignin}
+            size="lg"
             className="relative w-full bg-white text-black hover:bg-white/90"
           >
             <FcGoogle className="absolute left-2.5 top-3 size-5" />
-            Continue with google
+            Continue with Google
           </Button>
           <p className="text-xs text-muted-foreground">
             Don&apos;t have an account?{" "}

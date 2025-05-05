@@ -131,9 +131,9 @@ export default function StreamView({
   
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-black via-gray-900 to-gray-800">
       <Appbar isSpectator={!playVideo} />
-      <div className="mx-auto rounded-lg p-2 bg-gradient-to-r from-indigo-600 to-violet-800 text-2xl font-bold">
+      <div className="mx-auto rounded-lg p-2 bg-white/5 backdrop-blur-sm border border-white/10 text-2xl font-bold text-white/90">
         {spaceName}
       </div>
       <div className="flex justify-center">
@@ -168,7 +168,6 @@ export default function StreamView({
           </div>
         </div>
       </div>
-      
     </div>
   );
 }
