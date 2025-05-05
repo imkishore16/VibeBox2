@@ -131,22 +131,39 @@ export default function StreamView({
   
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-black via-gray-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800">
       <Appbar isSpectator={!playVideo} />
-      <div className="mx-auto rounded-lg p-2 bg-white/5 backdrop-blur-sm border border-white/10 text-2xl font-bold text-white/90">
-        {spaceName}
-      </div>
-      <div className="flex justify-center">
-        <div className="grid w-screen max-w-screen-xl grid-cols-1 gap-4 pt-8 md:grid-cols-5">
-          <Queue
-            creatorId={creatorId}
-            isCreator={playVideo}
-            queue={queue}
-            userId={user?.id || ""}
-            spaceId={spaceId}
-          />
-          <div className="col-span-2">
-            <div className="mx-auto w-full max-w-4xl space-y-6 p-4">
+      
+      {/* Main Content Container */}
+      <main className="container mx-auto px-4 py-6">
+        {/* Space Name Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-center">
+            <span className="bg-white/5 backdrop-blur-sm border border-white/10 px-6 py-3 rounded-lg inline-block">
+              {spaceName}
+            </span>
+          </h1>
+        </div>
+
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1600px] mx-auto">
+          {/* Queue Section - Larger on desktop */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+            <div className="sticky top-4">
+              <Queue
+                creatorId={creatorId}
+                isCreator={playVideo}
+                queue={queue}
+                userId={user?.id || ""}
+                spaceId={spaceId}
+              />
+            </div>
+          </div>
+
+          {/* Player Section - Center on desktop */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+            {/* Add Song Form */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
               <AddSongForm
                 creatorId={creatorId}
                 userId={user?.id || ""}
@@ -158,6 +175,10 @@ export default function StreamView({
                 spaceId={spaceId}
                 isSpectator={!playVideo}
               />
+            </div>
+
+            {/* Now Playing Section */}
+            <div className="relative">
               <NowPlaying
                 currentVideo={currentVideo}
                 playNext={playNext}
@@ -167,7 +188,7 @@ export default function StreamView({
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
