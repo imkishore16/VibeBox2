@@ -75,6 +75,29 @@ export default function StreamView({
           });
         } else if (type === `empty-queue/${spaceId}`) {
           setQueue([]);
+        } else if (type === `boost-song/${spaceId}`) {
+          setQueue((prev) => {
+            return prev.map((v) => {
+              if (v.id === data.streamId) {
+                return {
+                  ...v,
+                  paidAmount: data.paidAmount
+                };
+              }
+              return v;
+            }).sort((a, b) => {
+              // First sort by paidAmount
+              if (b.paidAmount !== a.paidAmount) {
+                return b.paidAmount - a.paidAmount;
+              }
+              // Then by upvotes
+              return b.upvotes - a.upvotes;
+            });
+          });
+        } else if (type === "token-update") {
+          setUserTokens(data.tokens);
+        } else if (type === "notification") {
+          toast(data.message);
         }
       };
     }

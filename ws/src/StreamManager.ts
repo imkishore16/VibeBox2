@@ -258,43 +258,6 @@ export class RoomManager {
     });
   }
 
-  async adminRemoveSong(spaceId: string, userId: string, streamId: string) {
-    console.log("adminRemoveSong");
-    const user = this.users.get(userId);
-    const creatorId = this.spaces.get(spaceId)?.creatorId;
-
-    if (user && userId == creatorId) {
-      await this.prisma.stream.delete({
-        where: {
-          id: streamId,
-          spaceId: spaceId,
-        },
-      });
-
-      await this.publisher.publish(
-        spaceId,
-        JSON.stringify({
-          type: "remove-song",
-          data: {
-            streamId,
-            spaceId,
-          },
-        })
-      );
-    } else {
-      user?.ws.forEach((ws) => {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            data: {
-              message: "You cant remove the song . You are not the host",
-            },
-          })
-        );
-      });
-    }
-  }
-
   publishPlayNext(spaceId: string) {
     const space = this.spaces.get(spaceId);
     space?.users.forEach((user, userId) => {
@@ -935,13 +898,66 @@ export class RoomManager {
     }
   }
 
+  publishBoost(spaceId: string, streamId: string, amount: number, totalPaidAmount: number) {
+    const space = this.spaces.get(spaceId);
+    space?.users.forEach((user) => {
+      user?.ws.forEach((ws) => {
+        ws.send(
+          JSON.stringify({
+            type: `boost-song/${spaceId}`,
+            data: {
+              streamId,
+              amount,
+              paidAmount: totalPaidAmount
+            }
+          })
+        );
+      });
+    });
+  }
+
+  publishTokenUpdate(userId: string, newTokenAmount: number) {
+    const user = this.users.get(userId);
+    user?.ws.forEach((ws) => {
+      ws.send(
+        JSON.stringify({
+          type: "token-update",
+          data: {
+            tokens: newTokenAmount
+          }
+        })
+      );
+    });
+  }
+
   async boostSong(spaceId: string, userId: string, streamId: string, amount: number) {
     const currentUser = this.users.get(userId);
     if (!currentUser) return;
 
     try {
-      // Start a transaction
-      await this.prisma.$transaction(async (tx) => {
+      const updatedStream = await this.prisma.$transaction(async (tx) => {
+        // Get the stream and verify ownership and played status
+        const stream = await tx.stream.findUnique({
+          where: { id: streamId },
+          select: { 
+            addedBy: true,
+            played: true,
+            paidAmount: true
+          }
+        });
+
+        if (!stream) {
+          throw new Error("Stream not found");
+        }
+
+        if (stream.addedBy !== userId) {
+          throw new Error("Only the song owner can boost it");
+        }
+
+        if (stream.played) {
+          throw new Error("Cannot boost a song that has already been played");
+        }
+
         // Get user's current tokens
         const user = await tx.user.findUnique({
           where: { id: userId },
@@ -953,7 +969,7 @@ export class RoomManager {
         }
 
         // Update user's tokens
-        await tx.user.update({
+        const updatedUser = await tx.user.update({
           where: { id: userId },
           data: { tokens: { decrement: amount } }
         });
@@ -968,24 +984,18 @@ export class RoomManager {
           }
         });
 
-        // Update stream's paid amount
-        await tx.stream.update({
+        // Update stream's paid amount and return both updated stream and user
+        const updatedStream = await tx.stream.update({
           where: { id: streamId },
           data: { paidAmount: { increment: amount } }
         });
+
+        return { stream: updatedStream, userTokens: updatedUser.tokens };
       });
 
-      // Notify all users in the space about the update
-      await this.publisher.publish(
-        spaceId,
-        JSON.stringify({
-          type: `boost-song/${spaceId}`,
-          data: {
-            streamId,
-            amount
-          }
-        })
-      );
+      // Publish both the boost update and token update
+      this.publishBoost(spaceId, streamId, amount, updatedStream.stream.paidAmount);
+      this.publishTokenUpdate(userId, updatedStream.userTokens);
 
     } catch (error) {
       console.error("Error boosting song:", error);
@@ -996,6 +1006,121 @@ export class RoomManager {
             data: {
               message: error instanceof Error ? error.message : "Error boosting song"
             }
+          })
+        );
+      });
+    }
+  }
+
+  async adminRemoveSong(spaceId: string, userId: string, streamId: string) {
+    console.log("adminRemoveSong");
+    const user = this.users.get(userId);
+    const creatorId = this.spaces.get(spaceId)?.creatorId;
+
+    if (user && userId === creatorId) {
+      try {
+        const result = await this.prisma.$transaction(async (tx) => {
+          // Get the stream to check for tokens to refund
+          const stream = await tx.stream.findUnique({
+            where: { id: streamId },
+            select: { 
+              addedBy: true,
+              paidAmount: true,
+              title: true
+            }
+          });
+
+          if (!stream) {
+            throw new Error("Stream not found");
+          }
+
+          // Delete the stream first
+          await tx.stream.delete({
+            where: {
+              id: streamId,
+            },
+          });
+
+          // Send notification to song owner
+          const songOwner = this.users.get(stream.addedBy);
+          if (songOwner) {
+            songOwner.ws.forEach((ws) => {
+              ws.send(
+                JSON.stringify({
+                  type: "notification",
+                  data: {
+                    message: `Your song "${stream.title}" has been removed by the host${stream.paidAmount > 0 ? `. ${stream.paidAmount} tokens have been refunded to your account` : ''}`
+                  }
+                })
+              );
+            });
+          }
+
+          if (stream.paidAmount > 0) {
+            // Refund tokens to the song owner
+            const updatedUser = await tx.user.update({
+              where: { id: stream.addedBy },
+              data: { tokens: { increment: stream.paidAmount } }
+            });
+
+            // Create refund transaction record
+            await tx.transaction.create({
+              data: {
+                userId: stream.addedBy,
+                amount: stream.paidAmount,
+                type: "PRIORITY_BOOST",
+                description: `Refund for removed song (${streamId})`
+              }
+            });
+
+            return { 
+              songOwner: stream.addedBy,
+              refundAmount: stream.paidAmount,
+              newTokenBalance: updatedUser.tokens
+            };
+          }
+
+          return null;
+        });
+
+        // If there was a refund, notify the user about their updated token balance
+        if (result) {
+          this.publishTokenUpdate(result.songOwner, result.newTokenBalance);
+        }
+
+        // Notify about song removal
+        await this.publisher.publish(
+          spaceId,
+          JSON.stringify({
+            type: "remove-song",
+            data: {
+              streamId,
+              spaceId,
+            },
+          })
+        );
+
+      } catch (error) {
+        console.error("Error removing song:", error);
+        user.ws.forEach((ws) => {
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              data: {
+                message: error instanceof Error ? error.message : "Error removing song"
+              }
+            })
+          );
+        });
+      }
+    } else {
+      user?.ws.forEach((ws) => {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            data: {
+              message: "You can't remove the song. You are not the host",
+            },
           })
         );
       });

@@ -127,7 +127,7 @@ export default function Queue({ queue, isCreator, creatorId, userId, spaceId, us
                       )}
                       <span>{video.upvotes}</span>
                     </Button>
-                    {video.addedBy === userId && !video.paidAmount && (
+                    {video.addedBy === userId && !video.played && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -136,7 +136,7 @@ export default function Queue({ queue, isCreator, creatorId, userId, spaceId, us
                           setIsPaymentModalOpen(true);
                         }}
                       >
-                        Boost 🚀
+                        {video.paidAmount > 0 ? 'Boost More 🚀' : 'Boost 🚀'}
                       </Button>
                     )}
                     {video.paidAmount > 0 && (
@@ -193,6 +193,7 @@ export default function Queue({ queue, isCreator, creatorId, userId, spaceId, us
         spaceId={spaceId}
         userId={userId}
         userTokens={userTokens}
+        currentPaidAmount={queue.find(v => v.id === selectedStreamId)?.paidAmount || 0}
       />
     </>
   );
