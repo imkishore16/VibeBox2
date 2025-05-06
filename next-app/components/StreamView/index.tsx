@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Video } from "@/types";
 
 import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
 
@@ -26,6 +27,7 @@ export default function StreamView({
   const [loading, setLoading] = useState(false);
   const [playNextLoader, setPlayNextLoader] = useState(false);
   const [spaceName, setSpaceName] = useState("");
+  const [userTokens, setUserTokens] = useState(0);
 
   const { socket, sendMessage } = useSocket();
   const user = useSession().data?.user;
@@ -53,7 +55,14 @@ export default function StreamView({
                 }
                 return v;
               })
-              .sort((a, b) => b.upvotes - a.upvotes);
+              .sort((a, b) => {
+                // First sort by paidAmount
+                if (b.paidAmount !== a.paidAmount) {
+                  return b.paidAmount - a.paidAmount;
+                }
+                // Then by upvotes
+                return b.upvotes - a.upvotes;
+              });
           });
         } else if (type === "error") {
           enqueueToast("error", data.message);
@@ -77,20 +86,42 @@ export default function StreamView({
   }, []);
 
   async function addToQueue(newStream: any) {
-    setQueue((prev) => [...prev, newStream]);
+    setQueue((prev) => [...prev, newStream].sort((a, b) => {
+      // First sort by paidAmount
+      if (b.paidAmount !== a.paidAmount) {
+        return b.paidAmount - a.paidAmount;
+      }
+      // Then by upvotes
+      return b.upvotes - a.upvotes;
+    }));
     setInputLink("");
     setLoading(false);
   }
 
   async function refreshStreams() {
     try {
-      const res = await fetch(`/api/streams/?spaceId=${spaceId}`, {
-        credentials: "include",
-      });
-      const json = await res.json();
-      console.log("json" , json)
+      const [streamsRes, userRes] = await Promise.all([
+        fetch(`/api/streams/?spaceId=${spaceId}`, {
+          credentials: "include",
+        }),
+        fetch('/api/user/tokens', {
+          credentials: "include",
+        })
+      ]);
+      
+      const json = await streamsRes.json();
+      const userJson = await userRes.json();
+      
+      setUserTokens(userJson.tokens);
       setQueue(
-        json.streams.sort((a: any, b: any) => (a.upvotes < b.upvotes ? 1 : -1)),
+        json.streams.sort((a: any, b: any) => {
+          // First sort by paidAmount
+          if (b.paidAmount !== a.paidAmount) {
+            return b.paidAmount - a.paidAmount;
+          }
+          // Then by upvotes
+          return b.upvotes - a.upvotes;
+        })
       );
       if (json.activeStream?.stream) {
         setCurrentVideo((video) => {
@@ -156,6 +187,7 @@ export default function StreamView({
                 queue={queue}
                 userId={user?.id || ""}
                 spaceId={spaceId}
+                userTokens={userTokens}
               />
             </div>
           </div>

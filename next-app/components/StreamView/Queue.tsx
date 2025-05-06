@@ -14,18 +14,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import PaymentModal from "./PaymentModal";
+import { Video } from "@/types";
 
 type Props = {
   queue: Video[];
   creatorId: string;
   userId: string;
   isCreator: boolean;
-  spaceId:string
+  spaceId: string;
+  userTokens: number;
 };
 
-export default function Queue({ queue, isCreator, creatorId, userId,spaceId }: Props) {
+export default function Queue({ queue, isCreator, creatorId, userId, spaceId, userTokens }: Props) {
   const { sendMessage } = useSocket();
   const [isEmptyQueueDialogOpen, setIsEmptyQueueDialogOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedStreamId, setSelectedStreamId] = useState<string>("");
   const [parent] = useAutoAnimate();
 
   function handleVote(id: string, isUpvote: boolean) {
@@ -122,6 +127,23 @@ export default function Queue({ queue, isCreator, creatorId, userId,spaceId }: P
                       )}
                       <span>{video.upvotes}</span>
                     </Button>
+                    {video.addedBy === userId && !video.paidAmount && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStreamId(video.id);
+                          setIsPaymentModalOpen(true);
+                        }}
+                      >
+                        Boost 🚀
+                      </Button>
+                    )}
+                    {video.paidAmount > 0 && (
+                      <span className="text-sm text-yellow-500">
+                        Boosted: {video.paidAmount} 🪙
+                      </span>
+                    )}
                     {isCreator && (
                       <Button
                         variant="outline"
@@ -164,6 +186,14 @@ export default function Queue({ queue, isCreator, creatorId, userId,spaceId }: P
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        streamId={selectedStreamId}
+        spaceId={spaceId}
+        userId={userId}
+        userTokens={userTokens}
+      />
     </>
   );
 }

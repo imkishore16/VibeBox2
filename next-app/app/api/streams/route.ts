@@ -279,33 +279,34 @@ export async function GET(req: NextRequest) {
                           userId: session?.user.id
                       }
                   }
-
               },
               where:{
-                  played:false
-              }
+                  played: false
+              },
+              orderBy: [
+                { paidAmount: 'desc' },
+                { upvotes: { _count: 'desc' } }
+              ]
           },
           _count: {
               select: {
                   streams: true
               }
-          },                
-
+          }
       }
-      
-  }),
-  db.currentStream.findFirst({
+    }),
+    db.currentStream.findFirst({
       where: {
           spaceId: spaceId
       },
       include: {
           stream: true
       }
-  })
+    })
   ]);
 
-  const hostId =space?.hostId;
-  const isCreator = session.user.id=== hostId
+  const hostId = space?.hostId;
+  const isCreator = session.user.id === hostId;
 
   return NextResponse.json({
     streams: space?.streams.map(({_count, ...rest}) => ({
@@ -316,6 +317,6 @@ export async function GET(req: NextRequest) {
     activeStream,
     hostId,
     isCreator,
-    spaceName:space?.name
-});
+    spaceName: space?.name
+  });
 }

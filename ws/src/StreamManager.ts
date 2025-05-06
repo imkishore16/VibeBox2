@@ -77,6 +77,13 @@ export class RoomManager {
         data.accessToken,
         data.existingActiveStream
       );
+    } else if (name === "boost-song") {
+      await RoomManager.getInstance().boostSong(
+        data.spaceId,
+        data.userId,
+        data.streamId,
+        data.amount
+      );
     } else if (name === "play-next") {
       await RoomManager.getInstance().adminPlayNext(data.spaceId, data.userId);
     } else if (name === "remove-song") {
@@ -925,6 +932,73 @@ export class RoomManager {
           users: updatedUsers,
         });
       }
+    }
+  }
+
+  async boostSong(spaceId: string, userId: string, streamId: string, amount: number) {
+    const currentUser = this.users.get(userId);
+    if (!currentUser) return;
+
+    try {
+      // Start a transaction
+      await this.prisma.$transaction(async (tx) => {
+        // Get user's current tokens
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { tokens: true }
+        });
+
+        if (!user || user.tokens < amount) {
+          throw new Error("Insufficient tokens");
+        }
+
+        // Update user's tokens
+        await tx.user.update({
+          where: { id: userId },
+          data: { tokens: { decrement: amount } }
+        });
+
+        // Create transaction record
+        await tx.transaction.create({
+          data: {
+            userId,
+            amount: -amount,
+            type: "PRIORITY_BOOST",
+            description: `Boosted song in queue (${streamId})`
+          }
+        });
+
+        // Update stream's paid amount
+        await tx.stream.update({
+          where: { id: streamId },
+          data: { paidAmount: { increment: amount } }
+        });
+      });
+
+      // Notify all users in the space about the update
+      await this.publisher.publish(
+        spaceId,
+        JSON.stringify({
+          type: `boost-song/${spaceId}`,
+          data: {
+            streamId,
+            amount
+          }
+        })
+      );
+
+    } catch (error) {
+      console.error("Error boosting song:", error);
+      currentUser.ws.forEach((ws) => {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            data: {
+              message: error instanceof Error ? error.message : "Error boosting song"
+            }
+          })
+        );
+      });
     }
   }
 }
