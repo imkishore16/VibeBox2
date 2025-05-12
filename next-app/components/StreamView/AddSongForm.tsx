@@ -133,7 +133,7 @@ export default function AddSongForm({
           {loading ? "Loading..." : "Add to Queue"}
         </Button>
         
-        { isSpectator && 
+        {/* { isSpectator && 
           <Button
             disabled={loading}
             onClick={handlePayAndPlay}
@@ -142,7 +142,7 @@ export default function AddSongForm({
           >
             {loading ? "Loading..." : "Pay and Play"}
           </Button>
-        }
+        } */}
         
       </form>
 

@@ -157,13 +157,13 @@ export default function HomeView() {
             </DialogTitle>
             <fieldset className="Fieldset">
               <label
-                className="text-gray-800 w-[90px] text-right text-xl font-bold"
+                className="text-white w-[90px] text-right text-xl font-bold"
                 htmlFor="name"
               >
                 Name of the Space
               </label>
               <input
-                className="text-gray-800 shadow-gray-500 focus:shadow-gray-700 mt-5 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
+                className="text-white shadow-gray-500 focus:shadow-gray-700 mt-5 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="name"
                 defaultValue="Pedro Duarte"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

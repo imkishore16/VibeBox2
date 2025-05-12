@@ -13,7 +13,6 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  
 }
 
 model User {
@@ -22,12 +21,15 @@ model User {
   name         String?
   password     String?
   provider     Provider
+  tokens       Int      @default(100) // Default 100 tokens for new users
   
   streams      Stream[] @relation("user")
   upvotes      Upvote[]
   addedStreams Stream[] @relation("addedBy")
   hostedSpaces Space[]  @relation("hostedBy")
+  transactions Transaction[] // Track token transactions
 }
+
 model Stream {
   id            String         @id @default(uuid())
   platform      Platform       // Enum to differentiate between platforms (YouTube, Spotify)
@@ -46,12 +48,29 @@ model Stream {
   userId        String
   addedBy       String
   spaceId       String?
+  paidAmount    Int           @default(0) // Amount of tokens paid for priority
 
   currentStream CurrentStream?
   space         Space?         @relation("spaceStreams", fields: [spaceId], references: [id], onDelete: Cascade)
   addedByUser   User           @relation("addedBy", fields: [addedBy], references: [id])
   user          User           @relation("user", fields: [userId], references: [id])
   upvotes       Upvote[]
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  userId      String
+  amount      Int       // Amount of tokens spent/received
+  type        TransactionType
+  description String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  PRIORITY_BOOST
+  SYSTEM_GRANT
+  REWARD
 }
 
 enum Platform {
@@ -92,8 +111,6 @@ model Space { //Room
   isActive      Boolean        @default(true)
   currentStream CurrentStream?
 }
-
-
 
 enum Provider {
   Google

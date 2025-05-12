@@ -29,6 +29,7 @@ type Data = {
   vote: "upvote" | "downvote";
   streamId: string;
   accessToken:string;
+  amount: number;
 };
 
 
@@ -97,6 +98,15 @@ async function processUserAction(type: string, data: Data) {
         data.url,
         data.accessToken,
       );
+      break;
+
+    case "boost-song":
+      await RoomManager.getInstance().queue.add("boost-song", {
+        spaceId: data.spaceId,
+        userId: data.userId,
+        streamId: data.streamId,
+        amount: data.amount
+      });
       break;
 
     case "play-next":

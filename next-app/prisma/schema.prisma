@@ -14,10 +14,12 @@ model User {
   name         String?
   password     String?
   provider     Provider
+  tokens       Int      @default(100)
   hostedSpaces Space[]  @relation("hostedBy")
   addedStreams Stream[] @relation("addedBy")
   streams      Stream[] @relation("user")
   upvotes      Upvote[]
+  transactions Transaction[]
 }
 
 model Stream {
@@ -38,6 +40,7 @@ model Stream {
   userId        String
   addedBy       String
   spaceId       String?
+  paidAmount    Int           @default(0)
   
   currentStream CurrentStream?
   addedByUser   User           @relation("addedBy", fields: [addedBy], references: [id])
@@ -75,6 +78,16 @@ model Space {
   streams       Stream[]       @relation("spaceStreams")
 }
 
+model Transaction {
+  id          String    @id @default(uuid())
+  userId      String
+  amount      Int       // Amount of tokens spent/received
+  type        TransactionType
+  description String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+}
+
 enum StreamType {
   VIDEO
   AUDIO
@@ -89,4 +102,10 @@ enum Provider {
 enum Platform {
   YOUTUBE
   SPOTIFY
+}
+
+enum TransactionType {
+  PRIORITY_BOOST
+  SYSTEM_GRANT
+  REWARD
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useSocket } from "@/context/socket-context";
 import jwt from "jsonwebtoken";
 import StreamView from "@/components/StreamView";
@@ -13,9 +13,8 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 
 
 
-export default function Component({params:{spaceId}}:{params:{spaceId:string}}) {
-
-
+export default function Component({params}:{params:Promise<{spaceId:string}>}) {
+  const { spaceId } = use(params);
   const { socket, user, loading, setUser, connectionError } = useSocket();
 
 

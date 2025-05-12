@@ -35,11 +35,11 @@ export function Appbar({ showThemeSwitch = true, isSpectator = false }) {
 
         {/* Actions Section */}
         <div className="flex items-center gap-4">
-          {isSpectator && (
+          {/* {isSpectator && (
             <div className="hidden sm:block">
               <WalletMultiButton />
             </div>
-          )}
+          )} */}
           
           {session.data?.user ? (
             <Button
