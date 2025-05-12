@@ -10,4 +10,5 @@ export interface Video {
   platform: "YOUTUBE" | "SPOTIFY";
   extractedId: string;
   url: string;
+  played: boolean;
 } 
